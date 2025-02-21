@@ -344,7 +344,7 @@ pub enum WriteOrder {
     SetBufferAddress(u16),
     SetAttribute(ExtendedFieldAttribute),
     ModifyField(Vec<ExtendedFieldAttribute>),
-    InsertCursor(u16),
+    InsertCursor(),
     ProgramTab,
     RepeatToAddress(u16, char),
     EraseUnprotectedToAddress(u16),
@@ -374,7 +374,7 @@ impl WriteOrder {
                     attr.encode_into(&mut* output);
                 }
             }
-            WriteOrder::InsertCursor(addr) => output.extend_from_slice(&[0x11, (addr >> 8) as u8, (addr & 0xff) as u8]),
+            WriteOrder::InsertCursor() => output.extend_from_slice(&[0x13]),
             WriteOrder::ProgramTab => output.push(0x05),
             WriteOrder::RepeatToAddress(addr, ch) => {
                 // TODO: COme up with a way to allow graphic escape here
@@ -641,7 +641,7 @@ impl IncomingRecord {
                 }
                 0x13 => {
                     ensure!(record.len() >= 3, UnexpectedEOR);
-                    result.orders.push(WriteOrder::InsertCursor(parse_addr(&record[1..3])?));
+                    result.orders.push(WriteOrder::InsertCursor());
                     record = &record[3..];
                 }
                 0x05 => {
